@@ -165,13 +165,13 @@ export function useSidePanelToggle({
     }
   }, [open]);
 
-  // Crossing `pinDisabled` closes the panel; crossing back restores it to the stored pinned state. Not on mount.
-  const skipFirstRun = useRef(true);
+  // Crossing `pinDisabled` closes the panel; crossing back restores it to the stored pinned state. Only on a real
+  // change: compared with the last value seen, not "skip the first run", which StrictMode's second mount pass
+  // defeats (a pinned panel closed before a reload came back open).
+  const lastPinDisabled = useRef(pinDisabled);
   useEffect(() => {
-    if (skipFirstRun.current) {
-      skipFirstRun.current = false;
-      return;
-    }
+    if (lastPinDisabled.current === pinDisabled) return;
+    lastPinDisabled.current = pinDisabled;
     // A hover close still pending from the other side of the crossing would undo what this sets.
     clearTimeout(hoverTimeout.current);
     hoverOpenRef.current = false;
