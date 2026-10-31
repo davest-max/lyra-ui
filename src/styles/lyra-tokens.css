@@ -153,6 +153,11 @@
      `LYRA_CARD_MAX_WIDTH` in src/lib/size-tokens.ts for props that take px numbers (SidePanel's `width`);
      change both together. */
   --lyra-size-card-max-width: 350px;
+  /* LeftNav's widths: expanded, and collapsed to its icon rail. Mirrored by `LEFT_NAV_EXPANDED_WIDTH` /
+     `LEFT_NAV_RAIL_WIDTH` in src/lib/size-tokens.ts (a panel sized to the nav's cards takes the expanded width as its
+     minimum); change both together. */
+  --lyra-size-left-nav-width: 256px;
+  --lyra-size-left-nav-rail-width: 60px;
 
   /* ── Gradients ── */
   /* A semantic tone at the top fading to the surface at the bottom (white in light, the surface in dark), over an

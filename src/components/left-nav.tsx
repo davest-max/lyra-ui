@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TreeMenu, type TreeMenuItem } from "./tree-menu";
 import { Tooltip } from "./tooltip";
 import { cn } from "../lib/utils";
+import { LEFT_NAV_EXPANDED_WIDTH, LEFT_NAV_RAIL_WIDTH } from "../lib/size-tokens";
 import { SkipLink } from "./skip-link";
 import { Badge } from "./badge";
 
@@ -449,7 +450,7 @@ const LeftNav = React.forwardRef<HTMLElement, LeftNavProps>(
         <aside
           ref={ref}
           aria-label="Main navigation"
-          className={cn("relative z-10 flex-shrink-0 overflow-visible bg-lyra-bg-surface-shell w-[60px]", className)}
+          className={cn("relative z-10 flex-shrink-0 overflow-visible bg-lyra-bg-surface-shell w-[var(--lyra-size-left-nav-rail-width)]", className)}
           onMouseEnter={onHoverStart}
           onMouseLeave={onHoverEnd}
           {...props}
@@ -459,7 +460,7 @@ const LeftNav = React.forwardRef<HTMLElement, LeftNavProps>(
           <div
             className="absolute left-0 top-0 bottom-0 flex flex-col bg-lyra-bg-surface-shell overflow-hidden"
             style={{
-              width: hoverOpen ? 256 : 60,
+              width: hoverOpen ? LEFT_NAV_EXPANDED_WIDTH : LEFT_NAV_RAIL_WIDTH,
               zIndex: hoverOpen ? 20 : 10,
               transition: "width 200ms cubic-bezier(0.4, 0, 0.2, 1)",
               boxShadow: hoverOpen ? "4px 0 12px rgba(0,0,0,0.1)" : "none",
@@ -634,7 +635,7 @@ const LeftNav = React.forwardRef<HTMLElement, LeftNavProps>(
         aria-label="Main navigation"
         className={cn(
           "relative z-10 flex h-full flex-shrink-0 flex-col overflow-visible bg-lyra-bg-surface-shell transition-all duration-200",
-          open ? "w-[256px]" : "w-[60px]",
+          open ? "w-[var(--lyra-size-left-nav-width)]" : "w-[var(--lyra-size-left-nav-rail-width)]",
           className
         )}
         {...props}

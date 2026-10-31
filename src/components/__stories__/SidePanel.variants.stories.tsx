@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ChevronDown, User } from "lucide-react";
 import { SidePanel } from "../side-panel";
 import { PanelPinButton } from "../panel-pin-button";
+import { PageHeader } from "../page-header";
+import { useSidePanelToggle } from "../use-side-panel-toggle";
 import { Select } from "../select";
 import { TreeMenu, type TreeMenuItem } from "../tree-menu";
 import { PanelForm } from "./InteriorPanel.shared";
@@ -162,6 +164,47 @@ export const PinButtonCustomIcon: Story = {
           unpinnedLabel="Pin Designer panel"
         />
         <span className="lyra-body-sm text-lyra-fg-secondary">{pinned ? "Pinned" : "Unpinned"}</span>
+      </div>
+    );
+  },
+};
+
+/* ── PageHeader toggles — useSidePanelToggle ──
+   A left and a right SidePanel, each driven by its PageHeader toggle through `useSidePanelToggle` (the wiring
+   AdminShell uses). The left one starts pinned and open: close it with the toggle, then hover the toggle to preview
+   it without moving the page. The right one starts unpinned: hovering its toggle opens it as a flyout, which closes
+   `SIDE_PANEL_HOVER_CLOSE_MS` after the pointer leaves the toggle and the panel; Enter on the toggle opens it with
+   focus inside, and Escape or tabbing out closes it. The left toggle carries a count badge and its own label. */
+export const PageHeaderToggles: Story = {
+  name: "PageHeader Toggles (useSidePanelToggle)",
+  render: () => {
+    const left = useSidePanelToggle({ side: "left", defaultOpen: true, defaultPinned: true });
+    const right = useSidePanelToggle({ side: "right" });
+    return (
+      <div className="relative flex h-[420px] overflow-hidden rounded-lyra-lg border border-lyra-border-subtle bg-lyra-bg-surface-base">
+        <SidePanel side="left" {...left.sidePanelProps} headerTitle="Assignments" skipToMain={false} className="focus:outline-none">
+          <PanelForm />
+        </SidePanel>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <PageHeader
+            title="Page Title"
+            panelToggle="both"
+            panelToggleBadge={3}
+            panelToggleLabel="Show assignments"
+            innerPanelToggleLabel="Show details"
+            {...left.pageHeaderProps}
+            {...right.pageHeaderProps}
+          />
+          <div className="flex-1 p-4">
+            <p className="lyra-body-sm text-lyra-fg-secondary">
+              Left: {left.pinned ? "pinned" : "unpinned"}, {left.open ? "open" : left.previewing ? "previewing" : "closed"}. Right:{" "}
+              {right.open ? "open" : "closed"}.
+            </p>
+          </div>
+        </div>
+        <SidePanel side="right" {...right.sidePanelProps} headerTitle="Details" className="focus:outline-none">
+          <PanelForm />
+        </SidePanel>
       </div>
     );
   },

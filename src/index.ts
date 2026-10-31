@@ -63,6 +63,8 @@ export {
 export type { SortDirection, ColumnDragHandlers, TableProps, TableHeadProps, TableCellProps, TableToolbarProps, ToolbarFilterDef, ToolbarActionDef, TableFooterProps, ColumnToggleItem, ColumnToggleProps, TableGroupRowProps, GroupedData, UseTableGroupingReturn, UseAutoFitRowsReturn } from "./components/table";
 export { useListReorder } from "./components/use-list-reorder";
 export type { UseListReorderOptions, UseListReorderReturn, ListReorderItemProps, ListReorderListProps } from "./components/use-list-reorder";
+export { useSidePanelToggle, SIDE_PANEL_HOVER_CLOSE_MS } from "./components/use-side-panel-toggle";
+export type { UseSidePanelToggleOptions, UseSidePanelToggleReturn } from "./components/use-side-panel-toggle";
 export { TabList, Tab, TabPanel } from "./components/tabs";
 export type { TabListProps, TabProps, TabPanelProps } from "./components/tabs";
 export { AppName } from "./components/app-name";
@@ -397,7 +399,7 @@ export type { PhoneValue, PhoneCountry } from "./components/phone-input";
 
 /* ── Utilities ── */
 export { cn } from "./lib/utils";
-export { LYRA_CARD_MAX_WIDTH } from "./lib/size-tokens";
+export { LYRA_CARD_MAX_WIDTH, LEFT_NAV_EXPANDED_WIDTH, LEFT_NAV_RAIL_WIDTH } from "./lib/size-tokens";
 export { AICard } from "./components/ai-card";
 export type { AICardProps, AICardColor } from "./components/ai-card";
 

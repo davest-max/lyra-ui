@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
 import { SidePanel } from "./side-panel";
+import { useSidePanelToggle } from "./use-side-panel-toggle";
 import { InteriorPanel } from "./interior-panel";
 import { PageHeader, type PageHeaderBreadcrumb } from "./page-header";
 import { TreeMenu, type TreeMenuItem } from "./tree-menu";
@@ -175,149 +176,33 @@ export function AdminShell({
   }, []);
   const isNarrowContainer = containerWidth < 1024;
 
-  /* ── Left side panel ── */
+  /* ── Side panels ──
+     The PageHeader toggle ↔ SidePanel wiring (hover flyout, pinned preview, keyboard open with focus-out / Escape,
+     pin) is `useSidePanelToggle`. Below 1024px a panel renders unpinned (`pinDisabled`): crossing it closes the
+     panel, and widening back restores it to the stored pinned state without clearing it, as the Storybook
+     `SidePanelPinGuardDemo` does. The left panel's pinned state, and its open state while pinned, live in cookies so
+     a remount (a list ↔ detail swap) keeps them. */
   const [leftPanelPinned, setLeftPanelPinned] = useState(() => readBoolCookie(pinCookieKey, defaultLeftPinned));
   const [leftPanelOpen, setLeftPanelOpen] = useState(() =>
     readBoolCookie(openCookieKey, readBoolCookie(pinCookieKey, defaultLeftPinned))
   );
   const effectiveLeftPinned = isNarrowContainer ? false : leftPanelPinned;
-  const leftHoverTimeout = useRef<ReturnType<typeof setTimeout>>();
-
-  // Id of the left panel — `aria-controls` target of the header's toggle button, and what
-  // the keyboard-open flow below focuses / looks the toggle up by.
-  const leftPanelId = useId();
-  // True while an UNPINNED (flyout) left panel was opened from the keyboard rather than by
-  // hover — drives the focus-out / Escape close below.
-  const leftKeyboardOpenRef = useRef(false);
-
-  const handleLeftToggle = useCallback(() => {
-    if (!effectiveLeftPinned) {
-      // Keyboard / assistive-tech activation of the toggle while unpinned (a mouse click never
-      // reaches here — see PageHeader). The flyout normally opens on hover only, which left
-      // keyboard users with no way to open it. Toggle it, and on open move focus into the panel
-      // (its region is focusable) so the next Tab enters its content — the panel sits before the
-      // header in tab order, so otherwise focus would be left behind it.
-      clearTimeout(leftHoverTimeout.current);
-      const next = !leftPanelOpen;
-      leftKeyboardOpenRef.current = next;
+  const left = useSidePanelToggle({
+    side: "left",
+    open: leftPanelOpen,
+    onOpenChange: (next) => {
       setLeftPanelOpen(next);
-      if (next) requestAnimationFrame(() => document.getElementById(leftPanelId)?.focus());
-      return;
-    }
-    setLeftPanelOpen((v) => {
-      const next = !v;
-      setCookie(openCookieKey, String(next));
-      return next;
-    });
-  }, [effectiveLeftPinned, openCookieKey, leftPanelOpen, leftPanelId]);
-
-  // A keyboard-opened flyout has no mouse-leave to close it, so close it when focus moves out
-  // of both the panel and its toggle, or on Escape (returning focus to the toggle if it was
-  // inside the panel).
-  useEffect(() => {
-    if (!leftPanelOpen || effectiveLeftPinned || !leftKeyboardOpenRef.current) return;
-    const panelEl = () => document.getElementById(leftPanelId);
-    const toggleEl = () => document.querySelector<HTMLElement>(`[aria-controls="${CSS.escape(leftPanelId)}"]`);
-    const close = () => {
-      leftKeyboardOpenRef.current = false;
-      setLeftPanelOpen(false);
-    };
-    const onFocusIn = (e: FocusEvent) => {
-      const t = e.target as Node | null;
-      if (t && (panelEl()?.contains(t) || toggleEl()?.contains(t))) return;
-      close();
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      // `defaultPrevented`: a Radix popover / menu inside the panel already consumed this Escape.
-      if (e.key !== "Escape" || e.defaultPrevented) return;
-      const focusWasInside = panelEl()?.contains(document.activeElement) ?? false;
-      close();
-      if (focusWasInside) toggleEl()?.focus();
-    };
-    document.addEventListener("focusin", onFocusIn);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("focusin", onFocusIn);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [leftPanelOpen, effectiveLeftPinned, leftPanelId]);
-
-  const handleLeftHoverStart = useCallback(() => {
-    if (!effectiveLeftPinned) { clearTimeout(leftHoverTimeout.current); setLeftPanelOpen(true); }
-  }, [effectiveLeftPinned]);
-
-  const handleLeftHoverEnd = useCallback(() => {
-    if (!effectiveLeftPinned) { leftHoverTimeout.current = setTimeout(() => setLeftPanelOpen(false), 300); }
-  }, [effectiveLeftPinned]);
-
-  const handleLeftPinToggle = useCallback(() => {
-    setLeftPanelPinned((prev) => {
-      const next = !prev;
+      if (effectiveLeftPinned) setCookie(openCookieKey, String(next));
+    },
+    pinned: leftPanelPinned,
+    onPinnedChange: (next) => {
+      setLeftPanelPinned(next);
       setCookie(pinCookieKey, String(next));
       setCookie(openCookieKey, String(next));
-      setLeftPanelOpen(next);
-      return next;
-    });
-  }, [pinCookieKey, openCookieKey]);
-
-  /* ── Right side panel ── */
-  const [rightSidePanelOpen, setRightSidePanelOpen] = useState(false);
-  const [rightSidePanelPinned, setRightSidePanelPinned] = useState(false);
-  const effectiveRightPinned = isNarrowContainer ? false : rightSidePanelPinned;
-  const rightHoverTimeout = useRef<ReturnType<typeof setTimeout>>();
-
-  const handleRightHoverStart = useCallback(() => {
-    if (!effectiveRightPinned) { clearTimeout(rightHoverTimeout.current); setRightSidePanelOpen(true); }
-  }, [effectiveRightPinned]);
-
-  const handleRightHoverEnd = useCallback(() => {
-    if (!effectiveRightPinned) { rightHoverTimeout.current = setTimeout(() => setRightSidePanelOpen(false), 300); }
-  }, [effectiveRightPinned]);
-
-  const handleRightPinToggle = useCallback(() => {
-    setRightSidePanelPinned((prev) => { const next = !prev; setRightSidePanelOpen(next); return next; });
-  }, []);
-
-  // `effectiveLeftPinned`/`effectiveRightPinned` above already force the
-  // rendered `pinned` prop to `false` below 1024px, but that alone isn't
-  // enough: `leftPanelOpen`/`rightSidePanelOpen` are untouched by it, so a
-  // panel that was open-and-pinned when the container crossed the
-  // threshold would instantly become an open-and-FLOATING overlay sitting
-  // on top of the content, rather than collapsing away and requiring a
-  // deliberate hover to reveal it again.
-  //
-  // Deliberately does NOT reset `leftPanelPinned`/`rightSidePanelPinned`
-  // themselves, though — only the rendered `open` state. `leftPanelPinned`
-  // stays exactly as the user left it, so the moment the container widens
-  // back out past 1024px, `effectiveLeftPinned` naturally reverts to it —
-  // the panel automatically returns to open-and-pinned, no re-pin click
-  // needed. Per "I wanted it to go behave like the storybook" — the
-  // Storybook demo's own `SidePanelPinGuardDemo` never touches its
-  // `pinned` state at all, only the derived-at-render `effectivePinned`,
-  // which is what let it auto-restore; a prior pass here mistakenly
-  // "fixed" this shell to instead PERMANENTLY clear the pin (matching what
-  // turned out to be undesired behavior in the Agent Next Gen template),
-  // which is now reversed.
-  //
-  // `skipFirstRun` guards the initial mount: `useEffect` fires once
-  // immediately after the first render too, and without this guard, a page
-  // that loads already wide with `leftPanelOpen` legitimately `false`
-  // (i.e. the user had previously collapsed the panel while still pinned —
-  // see `handleLeftToggle` above) would have that intentional collapsed
-  // state clobbered back open by the `else` branch below, on every fresh
-  // load. Only real narrow⇄wide TRANSITIONS after mount should touch it.
-  const skipFirstRun = useRef(true);
-  useEffect(() => {
-    if (skipFirstRun.current) { skipFirstRun.current = false; return; }
-    if (isNarrowContainer) {
-      setLeftPanelOpen(false);
-      setRightSidePanelOpen(false);
-    } else {
-      setLeftPanelOpen(leftPanelPinned);
-      setRightSidePanelOpen(rightSidePanelPinned);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNarrowContainer]);
+    },
+    pinDisabled: isNarrowContainer,
+  });
+  const right = useSidePanelToggle({ side: "right", pinDisabled: isNarrowContainer });
 
   return (
     <main ref={mainRef} className={cn("flex flex-1 overflow-hidden bg-lyra-bg-surface-base relative animate-in fade-in-0 duration-500", className)}>
@@ -330,15 +215,9 @@ export function AdminShell({
           enough that it never covers the icon rail's own toggle affordance. */}
       <SidePanel
         side="left"
-        open={leftPanelOpen}
-        pinned={effectiveLeftPinned}
+        {...left.sidePanelProps}
         headerTitle={navTitle}
         headerTitleBadge={navHeaderBadge}
-        onPinToggle={isNarrowContainer ? undefined : handleLeftPinToggle}
-        onMouseEnter={!effectiveLeftPinned ? handleLeftHoverStart : undefined}
-        onMouseLeave={!effectiveLeftPinned ? handleLeftHoverEnd : undefined}
-        id={leftPanelId}
-        tabIndex={-1}
         className="z-[8] focus:outline-none"
       >
         <TreeMenu key={navKey} className="px-2" items={navItems} exactSelection={navExactSelection} />
@@ -356,14 +235,8 @@ export function AdminShell({
             breadcrumb={pageBreadcrumb}
             panelToggle="left"
             badge={pageBadge}
-            panelPinned={effectiveLeftPinned}
-            panelOpen={leftPanelOpen}
-            panelControlsId={leftPanelId}
-            onPanelToggle={handleLeftToggle}
-            onPanelHoverStart={!effectiveLeftPinned ? handleLeftHoverStart : undefined}
-            onPanelHoverEnd={!effectiveLeftPinned ? handleLeftHoverEnd : undefined}
-            onInnerPanelHoverStart={!effectiveRightPinned ? handleRightHoverStart : undefined}
-            onInnerPanelHoverEnd={!effectiveRightPinned ? handleRightHoverEnd : undefined}
+            {...left.pageHeaderProps}
+            {...right.pageHeaderProps}
             actions={pageActions}
           />
         )}
@@ -410,12 +283,9 @@ export function AdminShell({
       {rightPanelContent !== undefined && (
         <SidePanel
           side="right"
-          open={rightSidePanelOpen}
-          pinned={effectiveRightPinned}
+          {...right.sidePanelProps}
           headerTitle={navTitle}
-          onPinToggle={isNarrowContainer ? undefined : handleRightPinToggle}
-          onMouseEnter={!effectiveRightPinned ? handleRightHoverStart : undefined}
-          onMouseLeave={!effectiveRightPinned ? handleRightHoverEnd : undefined}
+          className="focus:outline-none"
         >
           {rightPanelContent}
         </SidePanel>

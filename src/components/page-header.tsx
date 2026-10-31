@@ -148,6 +148,16 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Called when hover leaves the right panel toggle (unpinned mode) */
   onInnerPanelHoverEnd?: () => void;
   /**
+   * Count badge on the left (outer) panel toggle's top-right corner, as `Button`'s own `badge` (hidden when 0 or
+   * undefined) — e.g. how many items wait in the panel the toggle opens. The count isn't part of the accessible
+   * name: say it in `panelToggleLabel` when it matters.
+   */
+  panelToggleBadge?: number;
+  /** The left (outer) panel toggle's accessible name and tooltip (default "Toggle left panel"), e.g. a translated or more specific label. */
+  panelToggleLabel?: string;
+  /** The right (inner) panel toggle's accessible name and tooltip (default "Toggle right panel"). */
+  innerPanelToggleLabel?: string;
+  /**
    * Parent breadcrumb(s) — renders "ParentName / Title" for a single crumb,
    * or "ParentA / ParentB / … / Title" when passed an array for a deeper
    * trail. Composed from the shared `Breadcrumb` parts (see breadcrumb.tsx)
@@ -223,6 +233,9 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
       innerPanelControlsId,
       onInnerPanelHoverStart,
       onInnerPanelHoverEnd,
+      panelToggleBadge,
+      panelToggleLabel = "Toggle left panel",
+      innerPanelToggleLabel = "Toggle right panel",
       breadcrumb,
       badge,
       badgeColor = "green",
@@ -319,11 +332,13 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
       <div className="lyra-page-header-left flex flex-1 min-w-0 items-center gap-3">
         {(panelToggle === "left" || panelToggle === "both") && (
           <>
+            {/* Hover reaches the consumer while unpinned (the flyout) and while pinned but closed (SidePanel's
+                `preview`); a pinned, open panel has nothing to reveal. */}
             <div
-              onMouseEnter={!panelPinned ? onPanelHoverStart : undefined}
-              onMouseLeave={!panelPinned ? onPanelHoverEnd : undefined}
+              onMouseEnter={!panelPinned || panelOpen === false ? onPanelHoverStart : undefined}
+              onMouseLeave={!panelPinned || panelOpen === false ? onPanelHoverEnd : undefined}
             >
-              <Tooltip content="Toggle left panel" placement="right" asLabel>
+              <Tooltip content={panelToggleLabel} placement="right" asLabel>
                 <button
                   onClick={(e) => {
                     // Pinned: every click toggles. Unpinned: the panel is a hover
@@ -334,12 +349,18 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
                     // toggles the flyout; without this Enter did nothing when unpinned.
                     if (panelPinned || e.detail === 0) onPanelToggle?.();
                   }}
-                  aria-label="Toggle left panel"
+                  aria-label={panelToggleLabel}
                   aria-expanded={panelOpen}
                   aria-controls={panelControlsId}
                   className="flex h-8 w-8 items-center justify-center rounded-lyra-sm text-lyra-fg-secondary transition-colors hover:bg-lyra-state-hover active:bg-lyra-state-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lyra-border-focus focus-visible:ring-offset-2"
                 >
-                  <PanelLeft className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+                  {/* The badge as `Button`'s own (button.tsx): a critical circle on the icon's top-right corner. */}
+                  <span className="relative inline-flex">
+                    <PanelLeft className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+                    {panelToggleBadge != null && panelToggleBadge > 0 && (
+                      <Badge shape="circle" variant="critical" size="sm" count={panelToggleBadge} className="absolute -top-2 -right-2" />
+                    )}
+                  </span>
                 </button>
               </Tooltip>
             </div>
@@ -466,10 +487,10 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
               onMouseEnter={onInnerPanelHoverStart}
               onMouseLeave={onInnerPanelHoverEnd}
             >
-              <Tooltip content="Toggle right panel" placement="left" asLabel>
+              <Tooltip content={innerPanelToggleLabel} placement="left" asLabel>
                 <button
                   onClick={onInnerPanelToggle}
-                  aria-label="Toggle right panel"
+                  aria-label={innerPanelToggleLabel}
                   aria-expanded={innerPanelOpen}
                   aria-controls={innerPanelControlsId}
                   className="flex h-8 w-8 items-center justify-center rounded-lyra-sm text-lyra-fg-secondary transition-colors hover:bg-lyra-state-hover active:bg-lyra-state-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lyra-border-focus focus-visible:ring-offset-2"
