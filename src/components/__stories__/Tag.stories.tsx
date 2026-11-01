@@ -31,6 +31,7 @@ interface TagDemoProps {
   shape?: TagShape;
   dot?: boolean;
   dotPulse?: boolean;
+  fullLabel?: boolean;
 }
 
 function TagDemo({
@@ -41,6 +42,7 @@ function TagDemo({
   shape = "default",
   dot = false,
   dotPulse = false,
+  fullLabel = false,
 }: TagDemoProps) {
   const [removed, setRemoved] = useState(false);
   if (removed) {
@@ -61,6 +63,7 @@ function TagDemo({
       shape={shape}
       dot={dot}
       dotPulse={dotPulse}
+      fullLabel={fullLabel}
       disabled={disabled}
       onRemove={removable ? () => setRemoved(true) : undefined}
     />
@@ -78,6 +81,7 @@ export const Default: TagDemoStory = withControlsFor({
     shape: "default",
     dot: false,
     dotPulse: false,
+    fullLabel: false,
   },
   parameters: { controls: { sort: "none" } },
   argTypes: {
@@ -104,6 +108,12 @@ export const Default: TagDemoStory = withControlsFor({
       name: "Label",
       control: "text",
       description: "Text inside the tag (`label`).",
+      table: { category: "Content" },
+    },
+    fullLabel: {
+      name: "Full label",
+      control: "boolean",
+      description: "Show the whole label instead of capping it at 200px with an ellipsis (`fullLabel`): for a short sentence such as a lock's reason.",
       table: { category: "Content" },
     },
     variant: {

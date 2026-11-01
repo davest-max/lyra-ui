@@ -62,6 +62,9 @@ export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   disabled?: boolean;
   /** Optional count after the label — e.g. how many rows a filter chip matches. Rendered as muted text, not a badge. */
   count?: number;
+  /** Show the whole label, without the 200px cap and its ellipsis — for a short sentence that must stay readable,
+   *  such as a settings lock's reason ("Locked by: Supervisors team profile"). Default false: a chip-length label. */
+  fullLabel?: boolean;
   /**
    * Selectable mode: with `selected` (true or false) and `onClick`, the Tag
    * renders as a `<button>` — a toggle chip, e.g. a row of feed filters —
@@ -155,6 +158,7 @@ const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
       trailingIcon,
       disabled,
       count,
+      fullLabel = false,
       selected,
       onClick,
       className,
@@ -178,7 +182,7 @@ const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
               {icon}
             </span>
           )}
-          <span className="truncate max-w-[200px]">{label}</span>
+          <span className={fullLabel ? undefined : "truncate max-w-[200px]"}>{label}</span>
           {count !== undefined && <span className="ms-0.5 opacity-70">{count}</span>}
         </>
       );
