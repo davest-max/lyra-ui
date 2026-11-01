@@ -189,21 +189,39 @@ export function useSidePanelToggle({
       keyboardOpenRef.current = false;
       setOpen(false);
     };
+    // A pointer press on the toggle focuses it before its click: the click toggles, so focus arriving that way mustn't
+    // close the flyout first (the click would reopen it).
+    let pressingToggle = false;
+    const onPointerDown = (e: PointerEvent) => {
+      pressingToggle = !!toggleEl()?.contains(e.target as Node | null);
+    };
     const onFocusIn = (e: FocusEvent) => {
       const t = e.target as Node | null;
-      if (t && (panelEl()?.contains(t) || toggleEl()?.contains(t))) return;
+      if (t && panelEl()?.contains(t)) return;
+      if (t && toggleEl()?.contains(t)) {
+        // Back on the toggle from inside the panel by keyboard (Tab past its last control): the flyout covers the
+        // toggle, so it closes and the toggle's focus is seen (WCAG 2.4.11). Focus already on the toggle when it
+        // opened stays open.
+        const from = e.relatedTarget as Node | null;
+        if (!pressingToggle && from && panelEl()?.contains(from)) close();
+        return;
+      }
       close();
     };
     const onKeyDown = (e: KeyboardEvent) => {
+      // A keyboard move (Tab's keydown comes before the focus it moves) is never a press on the toggle.
+      pressingToggle = false;
       // `defaultPrevented`: a Radix popover / menu inside the panel already consumed this Escape.
       if (e.key !== "Escape" || e.defaultPrevented) return;
       const focusWasInside = panelEl()?.contains(document.activeElement) ?? false;
       close();
       if (focusWasInside) toggleEl()?.focus();
     };
+    document.addEventListener("pointerdown", onPointerDown, true);
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("keydown", onKeyDown);
     };

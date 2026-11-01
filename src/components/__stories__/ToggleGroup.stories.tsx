@@ -18,6 +18,7 @@ const meta: Meta<typeof ToggleGroup> = {
     itemMaxWidth: { control: "number" },
     ariaLabel: { control: "text" },
     ariaLabelledBy: { control: "text" },
+    ariaDescribedBy: { control: "text" },
     showTruncationTooltip: { control: "boolean" },
     menuAriaLabel: { control: "text" },
     items: { table: { disable: true } },
@@ -51,6 +52,7 @@ interface ToggleGroupDemoProps {
   allowDeselect?: boolean;
   itemMaxWidth?: "none" | "80" | "120";
   ariaLabel?: string;
+  ariaDescribedBy?: string;
 }
 
 function ToggleGroupDemo({
@@ -67,6 +69,7 @@ function ToggleGroupDemo({
   allowDeselect = false,
   itemMaxWidth = "none",
   ariaLabel = "View",
+  ariaDescribedBy,
 }: ToggleGroupDemoProps) {
   const maxWidth = itemMaxWidth === "none" ? undefined : Number(itemMaxWidth);
   const longLabels = maxWidth !== undefined;
@@ -89,6 +92,7 @@ function ToggleGroupDemo({
         fullWidth={fullWidth}
         itemMaxWidth={maxWidth}
         ariaLabel={ariaLabel || undefined}
+        ariaDescribedBy={ariaDescribedBy || undefined}
         showTruncationTooltip
       />
     ) : (
@@ -101,6 +105,7 @@ function ToggleGroupDemo({
         allowDeselect={allowDeselect}
         itemMaxWidth={maxWidth}
         ariaLabel={ariaLabel || undefined}
+        ariaDescribedBy={ariaDescribedBy || undefined}
         showTruncationTooltip
       />
     );
@@ -136,7 +141,7 @@ export const Default: ToggleGroupDemoStory = {
         "Items", "Icons", "Label", "Group name",
         "With badge", "Badge type", "Full width", "Max item width",
         "type", "allowDeselect", "disabled", "disabledItem", "withMenu",
-        "itemCount", "withIcons", "withLabel", "ariaLabel",
+        "itemCount", "withIcons", "withLabel", "ariaLabel", "ariaDescribedBy",
         "withBadge", "badgeType", "fullWidth", "itemMaxWidth",
       ],
       sort: "none",

@@ -89,6 +89,8 @@ export interface ToggleGroupProps {
   ariaLabel?: string;
   /** Id of a visible element that names the group (`aria-labelledby`). */
   ariaLabelledBy?: string;
+  /** Id of a visible element that describes the group (`aria-describedby`), e.g. why it's disabled: read on entering it. */
+  ariaDescribedBy?: string;
   /** Additional className on the root */
   className?: string;
 }
@@ -173,6 +175,7 @@ const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(
       itemMaxWidth,
       ariaLabel,
       ariaLabelledBy,
+      ariaDescribedBy,
       className,
     },
     ref
@@ -288,6 +291,7 @@ const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(
         role={isSingle ? "radiogroup" : "group"}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
         aria-disabled={disabled || undefined}
         className={cn(
           "items-center rounded-lyra-md border border-lyra-border-subtle bg-lyra-bg-surface-base p-0.5 gap-0",

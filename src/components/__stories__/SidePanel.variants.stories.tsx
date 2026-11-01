@@ -190,7 +190,8 @@ export const PageHeaderToggles: Story = {
             title="Page Title"
             panelToggle="both"
             panelToggleBadge={3}
-            panelToggleLabel="Show assignments"
+            // The badge is hidden from assistive tech: the count is in the name.
+            panelToggleLabel="Assignments, 3 active"
             innerPanelToggleLabel="Show details"
             {...left.pageHeaderProps}
             {...right.pageHeaderProps}

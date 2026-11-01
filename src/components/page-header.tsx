@@ -149,8 +149,8 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   onInnerPanelHoverEnd?: () => void;
   /**
    * Count badge on the left (outer) panel toggle's top-right corner, as `Button`'s own `badge` (hidden when 0 or
-   * undefined) — e.g. how many items wait in the panel the toggle opens. The count isn't part of the accessible
-   * name: say it in `panelToggleLabel` when it matters.
+   * undefined) — e.g. how many items wait in the panel the toggle opens. The badge is hidden from assistive tech, so
+   * the count is announced only through the name: put it in `panelToggleLabel` (e.g. "Assignments, 4 active").
    */
   panelToggleBadge?: number;
   /** The left (outer) panel toggle's accessible name and tooltip (default "Toggle left panel"), e.g. a translated or more specific label. */
@@ -354,11 +354,21 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
                   aria-controls={panelControlsId}
                   className="flex h-8 w-8 items-center justify-center rounded-lyra-sm text-lyra-fg-secondary transition-colors hover:bg-lyra-state-hover active:bg-lyra-state-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lyra-border-focus focus-visible:ring-offset-2"
                 >
-                  {/* The badge as `Button`'s own (button.tsx): a critical circle on the icon's top-right corner. */}
+                  {/* The badge as `Button`'s own (button.tsx): a critical circle on the icon's top-right corner. Hidden
+                      from assistive tech: the count belongs in `panelToggleLabel`, the button's name, so its own
+                      "{n} notifications" reading would contradict the name (WCAG 2.5.3, axe label-content-name-mismatch). */}
                   <span className="relative inline-flex">
                     <PanelLeft className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
                     {panelToggleBadge != null && panelToggleBadge > 0 && (
-                      <Badge shape="circle" variant="critical" size="sm" count={panelToggleBadge} className="absolute -top-2 -right-2" />
+                      <Badge
+                        shape="circle"
+                        variant="critical"
+                        size="sm"
+                        count={panelToggleBadge}
+                        aria-hidden="true"
+                        aria-label=""
+                        className="absolute -top-2 -right-2"
+                      />
                     )}
                   </span>
                 </button>

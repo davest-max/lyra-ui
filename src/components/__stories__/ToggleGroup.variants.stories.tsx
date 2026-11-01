@@ -221,3 +221,30 @@ export const AllowDeselect: Story = {
   name: "Allow Deselect",
   render: () => <AllowDeselectDemo />,
 };
+
+/* ── Disabled With Reason — a disabled group says why as visible text, tied to the group with `ariaDescribedBy` so
+   a screen reader reads it on entering the group (a disabled radio takes no focus, so a tooltip alone never reaches
+   the keyboard). ── */
+export const DisabledWithReason: Story = {
+  name: "Disabled With Reason",
+  render: () => (
+    <div className="flex flex-col gap-1.5">
+      <span id="tg-reason-label" className="lyra-label text-lyra-fg-default">
+        Home layout
+      </span>
+      <ToggleGroup
+        ariaLabelledBy="tg-reason-label"
+        ariaDescribedBy="tg-reason-text"
+        items={[
+          { value: "one", label: "One column" },
+          { value: "two", label: "Two columns" },
+        ]}
+        value="one"
+        disabled
+      />
+      <p id="tg-reason-text" className="lyra-body-sm text-lyra-fg-secondary">
+        Advanced layout is on.
+      </p>
+    </div>
+  ),
+};
