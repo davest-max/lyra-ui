@@ -210,8 +210,10 @@ export interface InteractionChannel {
    *  Pass `""` for a channel with nothing to time yet (e.g. an agent-
    *  initiated channel still waiting on the customer's very first reply) —
    *  the clock icon + text are omitted entirely rather than showing a blank
-   *  or misleadingly-ticking value. */
-  elapsed: string;
+   *  or misleadingly-ticking value. Or a node that renders the time itself
+   *  (a self-ticking timer): the row then doesn't re-render each second,
+   *  and its accessible name leaves the time out. */
+  elapsed: React.ReactNode;
   /** Replaces the clock-icon + `elapsed` span entirely with arbitrary
    *  content (e.g. a small colored chip) — per explicit request ("have the
    *  on hold chip replace the timer in hold calls"): a live voice channel
@@ -436,7 +438,8 @@ interface ChannelRowProps {
    *  `CHANNEL_TYPE_TAG_VARIANT` above. `awaitingResponse` always overrides
    *  to "critical" (red) regardless of this value. */
   variant: TagVariant;
-  elapsed: string;
+  /** See `InteractionChannel.elapsed`: a string, or a node that renders the time itself. */
+  elapsed: React.ReactNode;
   /** See `InteractionChannel.elapsedOverride`'s own doc comment above. */
   elapsedOverride?: React.ReactNode;
   preview?: string;
@@ -710,7 +713,8 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
       <Button
         ref={selectButtonRef}
         variant="ghost"
-        aria-label={`${label} channel${severity ? ", awaiting response" : ""}${elapsed ? `, ${elapsed}` : ""}`}
+        // A live node (see `elapsed`) isn't text: the name leaves the time out rather than re-announcing it each tick.
+        aria-label={`${label} channel${severity ? ", awaiting response" : ""}${typeof elapsed === "string" && elapsed ? `, ${elapsed}` : ""}`}
         aria-current={highlighted ? "true" : undefined}
         className="absolute inset-0 h-full w-full rounded-none p-0 hover:bg-transparent active:bg-transparent focus-visible:ring-inset focus-visible:ring-offset-0"
       />
@@ -1058,7 +1062,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
         </Tooltip>
       )}
       {elapsedOverride ?? (elapsed && (
-        <Tooltip content={recording ? `Recording · Duration: ${elapsed}` : `Duration: ${elapsed}`} placement="top">
+        <Tooltip content={<>{recording ? "Recording · Duration: " : "Duration: "}{elapsed}</>} placement="top">
         <span
           className={cn(
             "flex shrink-0 items-center gap-1 lyra-body-xs",
@@ -1120,7 +1124,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
  * being passed down generically from `InteractionNavItem` or a story. */
 
 export interface ChannelRowInstanceProps {
-  elapsed: string;
+  elapsed: React.ReactNode;
   /** `KindChannelRow` only — see `InteractionChannel.kind`. */
   kind?: ChannelKindRow;
   /** Passed straight through to `ChannelRow` — see `InteractionChannel.hideChip`. */

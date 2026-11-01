@@ -70,7 +70,9 @@ export interface AgentProfileProps {
   avatarSrc?: string;
   status?: AgentStatus;
   onStatusChange?: (status: AgentStatus) => void;
-  timer?: string;
+  /** The time in the current status ("00:42"), or a node that renders it itself (a self-ticking timer), so the
+   *  profile doesn't re-render each second. */
+  timer?: React.ReactNode;
   /** Pass apps to show the Connected Apps flyout panel */
   connectedApps?: ConnectedApp[];
   /** Called when reconnect is triggered for an app */

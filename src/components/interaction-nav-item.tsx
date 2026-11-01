@@ -11,7 +11,11 @@ import {
 } from "./channel-row";
 import { Popover } from "./popover";
 import { Tooltip } from "./tooltip";
-import { getHoldBadgeColor } from "./hold-sla";
+import { getHoldBadgeColor, type HoldSeverity } from "./hold-sla";
+
+/** The on-hold timer's colour: read from a string's time, else the caller's `holdSeverity` (a live node's). */
+const holdTone = (elapsed: React.ReactNode, holdSeverity: HoldSeverity | undefined): HoldSeverity =>
+  typeof elapsed === "string" ? getHoldBadgeColor(elapsed) : (holdSeverity ?? "success");
 import { Badge, getPillInlineStyles, type BadgeColor } from "./badge";
 import { Button } from "./button";
 import { ShowMoreChevron } from "./show-more";
@@ -89,8 +93,14 @@ export interface InteractionNavItemProps {
    */
   newOutline?: boolean;
   /** Elapsed time label as 4-digit MM:SS (e.g. "00:02" = 2 seconds since the
-   *  customer's last response) — shown under the compact avatar tile. */
-  elapsed: string;
+   *  customer's last response) — shown under the compact avatar tile. Or a
+   *  node that renders the time itself (a self-ticking timer): the card then
+   *  doesn't re-render each second; its accessible name leaves the time out,
+   *  and an on-hold badge takes its colour from `holdSeverity`. */
+  elapsed: React.ReactNode;
+  /** The on-hold badge's colour when `elapsed` is a node (a string's is read
+   *  from its time). */
+  holdSeverity?: HoldSeverity;
   /**
    * True when the customer has sent a message the agent hasn't replied to
    * yet: the avatar switches from primary (blue) to success (green)/warning
@@ -309,6 +319,7 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
       kindIcon,
       newOutline = false,
       elapsed,
+      holdSeverity,
       awaitingResponse = false,
       awaitingSeverity,
       isNewAssignment = false,
@@ -712,7 +723,7 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
     // see the app-level `elapsed` prop's own call-site comment,
     // AgentNextGenPage.tsx) — appended conditionally so that doesn't leave
     // a dangling ", " with nothing after it.
-    const ariaLabel = `${displayName}${isNewAssignment ? ", new assignment" : ""}${awaitingResponse ? ", awaiting response" : ""}${channelCount > 1 ? `, ${channelCount} open channels` : ""}${elapsed ? `, ${elapsed}` : ""}`;
+    const ariaLabel = `${displayName}${isNewAssignment ? ", new assignment" : ""}${awaitingResponse ? ", awaiting response" : ""}${channelCount > 1 ? `, ${channelCount} open channels` : ""}${typeof elapsed === "string" && elapsed ? `, ${elapsed}` : ""}`;
 
     // Header row + channel list — the expanded card's actual content,
     // factored out so it can be rendered both by the real expanded return
@@ -1004,15 +1015,15 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
           {collapsible && !channelsExpanded && elapsed && onHold && (
             // Per explicit request: while the call is on hold the timer
             // (the hold time) is a 12px pill badge with a pause icon.
-            <Tooltip content={`On hold: ${elapsed}`} placement="top">
+            <Tooltip content={<>On hold: {elapsed}</>} placement="top">
             <Badge
               shape="pill"
-              color={getHoldBadgeColor(elapsed)}
+              color={holdTone(elapsed, holdSeverity)}
               variant="subtle"
               fontSize={12}
               icon={<Pause strokeWidth={2} />}
               className="shrink-0"
-              aria-label={`On hold ${elapsed}`}
+              aria-label={typeof elapsed === "string" ? `On hold ${elapsed}` : "On hold"}
             >
               {/* Fixed-width time (tabular digits in a `5ch` box = "mm:ss"):
                   a hold never lasts an hour, so the badge keeps one constant
@@ -1022,7 +1033,7 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
             </Tooltip>
           )}
           {collapsible && !channelsExpanded && elapsed && !onHold && (
-            <Tooltip content={`Duration: ${elapsed}`} placement="top">
+            <Tooltip content={<>Duration: {elapsed}</>} placement="top">
             <span
               className={cn(
                 "inline-flex shrink-0 items-center gap-1 lyra-body-xs",
@@ -1036,14 +1047,18 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
                   ? "text-lyra-status-success-strong"
                   : "text-lyra-fg-secondary"
               )}
-              aria-label={`Elapsed ${elapsed}`}
+              aria-label={typeof elapsed === "string" ? `Elapsed ${elapsed}` : "Elapsed"}
             >
               <Clock className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
               {/* Fixed-width time: tabular digits in a box sized to the
                   string's own length in `ch` ("mm:ss" = 5ch). It only widens
                   once, when a call passes an hour ("h:mm:ss"), and stays
                   constant while the digits tick. */}
-              <span className="inline-block text-right tabular-nums" style={{ width: `${elapsed.length}ch` }}>
+              {/* A node's length isn't known: it gets the "mm:ss" 5ch as a minimum. */}
+              <span
+                className={cn("inline-block text-right tabular-nums", typeof elapsed !== "string" && "min-w-[5ch]")}
+                style={typeof elapsed === "string" ? { width: `${elapsed.length}ch` } : undefined}
+              >
                 {elapsed}
               </span>
             </span>
@@ -1525,15 +1540,15 @@ const InteractionNavItem = React.forwardRef<HTMLDivElement, InteractionNavItemPr
                   // indicator is the avatar's top badge, and a pill doesn't
                   // fit the narrow rail), colored by hold SLA (15s warning,
                   // 30s critical).
-                  (onHold ? getHoldBadgeColor(elapsed) : severity) === "critical"
+                  (onHold ? holdTone(elapsed, holdSeverity) : severity) === "critical"
                     ? "text-lyra-status-critical-strong"
-                    : (onHold ? getHoldBadgeColor(elapsed) : severity) === "warning"
+                    : (onHold ? holdTone(elapsed, holdSeverity) : severity) === "warning"
                     ? "text-lyra-status-warning-strong"
-                    : (onHold ? getHoldBadgeColor(elapsed) : severity) === "success"
+                    : (onHold ? holdTone(elapsed, holdSeverity) : severity) === "success"
                     ? "text-lyra-status-success-strong"
                     : "text-lyra-fg-secondary"
                 )}
-                aria-label={onHold ? `On hold ${elapsed}` : undefined}
+                aria-label={onHold ? (typeof elapsed === "string" ? `On hold ${elapsed}` : "On hold") : undefined}
                 aria-hidden={onHold ? undefined : true}
               >
                 {elapsed}
