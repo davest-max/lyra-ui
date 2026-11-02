@@ -179,7 +179,8 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * view, where the channel tab row / session separator directly below
    * already draws its own line, this header's own border just doubled it
    * up into two parallel lines with an odd, empty-looking gap between
-   * them.
+   * them. Ignored when `tabs` is passed: the `TabList`'s own border is
+   * then the header's bottom line.
    */
   bordered?: boolean;
   /**
@@ -206,6 +207,18 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * regardless of which one a given consumer happens to use.
    */
   titleSize?: "lg" | "2xl";
+  /**
+   * A row of tabs under the title row, inside the header (e.g. a `TabList`
+   * of a page's views: agent-next-gen-demo's Home, Dashboard / Customers /
+   * Accounts / Tickets). Rendered as given, with no wrapper padding: pass
+   * the horizontal inset on the `TabList` itself (`className="px-6"`, as
+   * its own doc comment says), so its bottom border still spans the
+   * header's full width. With `tabs`, the title row draws no `border-b` of
+   * its own and keeps only a small bottom inset (`pb-1`; `compact` keeps its
+   * `pb-0`) — the tab row's line is the header's bottom edge. Absent,
+   * nothing changes.
+   */
+  tabs?: React.ReactNode;
 }
 
 const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
@@ -243,6 +256,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
       bordered = true,
       compact = false,
       titleSize = "lg",
+      tabs,
       ...props
     },
     ref
@@ -304,9 +318,10 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
           // the same top inset the default `py-4` already has, dropping
           // only the bottom half — a plain `py-0`/`p-0` would also yank the
           // title away from the top edge, not just close the gap below it.
-          compact ? "min-h-[54px] pt-4 pb-0" : "min-h-[68px] py-4",
-          // `bordered` — see that prop's own doc comment.
-          bordered && "border-b border-lyra-border-subtle",
+          compact ? "min-h-[54px] pt-4 pb-0" : tabs ? "min-h-[68px] pt-4 pb-1" : "min-h-[68px] py-4",
+          // `bordered` — see that prop's own doc comment. With `tabs`, the
+          // tab row below draws the header's bottom line instead.
+          bordered && !tabs && "border-b border-lyra-border-subtle",
           // Scopes the container-query wrap/align-self behavior below
           // (lyra-tokens.css) to consumers that actually pass `titleSuffix` —
           // see that CSS block's own doc comment for why: it exists so
@@ -513,6 +528,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         )}
       </div>
       </div>
+      {tabs}
     </div>
     );
   }

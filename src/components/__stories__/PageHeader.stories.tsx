@@ -8,6 +8,7 @@ import { Avatar } from "../avatar";
 import { Badge } from "../badge";
 import { Tag, type TagVariant } from "../tag";
 import { MenuRadix } from "../menu-radix";
+import { Tab, TabList } from "../tabs";
 import { WhatsAppIcon } from "../channel-row";
 import { AiIcon } from "../icons/ai-icon";
 import { cn } from "../../lib/utils";
@@ -512,4 +513,35 @@ export const Default: Story = {
     },
   },
   render: (args) => <PageHeaderDemo {...args} />,
+};
+
+/** `tabs`: a page's views as a row under the title, inside the header (agent-next-gen-demo's Home). The `TabList`
+ *  carries the header's `px-6` itself, so its bottom border spans the full width and is the header's bottom line. */
+function PageHeaderWithTabsDemo() {
+  const views = ["Dashboard", "Customers", "Accounts", "Tickets"];
+  const [active, setActive] = React.useState(views[0]);
+  return (
+    <div className="bg-lyra-bg-surface-base">
+      <PageHeader
+        title="Good morning John"
+        subtitle="User Name: jsmith"
+        actions={<Button variant="secondary">My Assignment Queue: 3</Button>}
+        tabs={
+          <TabList className="px-6" overflowMenu>
+            {views.map((view) => (
+              <Tab key={view} active={active === view} onClick={() => setActive(view)}>
+                {view}
+              </Tab>
+            ))}
+          </TabList>
+        }
+      />
+      <div className="p-6 lyra-body-md text-lyra-fg-secondary">{active}</div>
+    </div>
+  );
+}
+
+export const WithTabs: Story = {
+  name: "With tabs",
+  render: () => <PageHeaderWithTabsDemo />,
 };
