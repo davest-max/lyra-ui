@@ -120,3 +120,46 @@ export const FullScreenRemembered: Story = {
   name: "Full Screen Remembered per Context",
   render: () => <RememberedFullScreen />,
 };
+
+/** `containerWidth`: a panel inside a `display: contents` host (so it lays out as a flex item of the row around it,
+ *  as a portaled panel does) measures a parent of 0 — "narrow", and any drag past 90% of 0 would go full screen. Given
+ *  the row's width instead, it docks beside the content and resizes normally. */
+function ContainerWidthDemo() {
+  const rowRef = React.useRef<HTMLDivElement>(null);
+  const [rowWidth, setRowWidth] = React.useState<number>();
+  React.useLayoutEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    setRowWidth(el.getBoundingClientRect().width);
+    const ro = new ResizeObserver(([entry]) => setRowWidth(entry.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={rowRef} className="relative flex h-[420px] max-w-4xl overflow-hidden rounded-lyra-lg border border-lyra-border-subtle bg-lyra-bg-surface-base">
+      <div className="flex-1 min-w-0 p-6 lyra-body-md text-lyra-fg-secondary">The page column</div>
+      {/* Mounted once the row's width is known, so the panel never measures its 0-wide host. */}
+      {rowWidth !== undefined && rowWidth > 0 && (
+      <div style={{ display: "contents" }}>
+        <InteriorPanel
+          open
+          headerTitle="Docked beside the column"
+          containerWidth={rowWidth}
+          absoluteBreakpoint={0}
+          resizable
+          allowFullScreen
+          autoFullScreen
+          onClose={() => {}}
+        >
+          <PanelForm />
+        </InteriorPanel>
+      </div>
+      )}
+    </div>
+  );
+}
+
+export const ContainerWidth: Story = {
+  name: "Container Width (portaled host)",
+  render: () => <ContainerWidthDemo />,
+};

@@ -228,6 +228,22 @@ export interface InteriorPanelProps extends React.HTMLAttributes<HTMLDivElement>
   absoluteBreakpoint?: number;
 
   /**
+   * The container's width, given instead of measured. By default the panel
+   * measures its parent element (`absoluteBreakpoint`'s switch,
+   * `autoFullScreen`'s 90% threshold, the width restored on leaving an auto
+   * full screen, and the width the panel is clamped to — its full-screen
+   * width — all read it). A panel portaled into a `display: contents` host
+   * — so it lays out as a flex item of the row around that host — has a
+   * parent that measures 0, which would read as "narrow" and make any drag
+   * jump to full screen; pass the row's width here (agent-next-gen-demo's
+   * right panels beside the page column). Pass it from the first render
+   * (and never 0), or don't mount the panel until it's known: a panel that
+   * starts by measuring its 0-wide host can latch into auto full screen.
+   * Absent, the parent is measured as before.
+   */
+  containerWidth?: number;
+
+  /**
    * Forces the panel permanently into its absolute-overlay layout (the
    * same one `isNarrow`/`absoluteBreakpoint` switches to below the
    * threshold above), regardless of how wide its parent container is —
@@ -341,6 +357,7 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
       defaultFullScreen = false,
       onFullScreenChange,
       absoluteBreakpoint = 1440,
+      containerWidth,
       overlayHeader = false,
       footer,
       rounded = false,
@@ -436,7 +453,9 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
        comment for why this is now a per-consumer prop rather than always
        this one hardcoded value. ── */
     const outerRef = useRef<HTMLDivElement>(null);
-    const [parentWidth, setParentWidth] = useState(9999);
+    const [measuredParentWidth, setParentWidth] = useState(9999);
+    // `containerWidth`, when given, stands in for the measured parent (see that prop's own doc comment).
+    const parentWidth = containerWidth ?? measuredParentWidth;
     parentWidthRef.current = parentWidth;
     // `overlayHeader` short-circuits this to permanently true — see that
     // prop's own doc comment for why (equivalent to `absoluteBreakpoint`
@@ -450,14 +469,15 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const measuresParent = containerWidth === undefined;
     useLayoutEffect(() => {
       const el = outerRef.current?.parentElement;
-      if (!el) return;
+      if (!el || !measuresParent) return;
       setParentWidth(el.getBoundingClientRect().width);
       const ro = new ResizeObserver(([entry]) => setParentWidth(entry.contentRect.width));
       ro.observe(el);
       return () => ro.disconnect();
-    }, []);
+    }, [measuresParent]);
 
     // Full-screen toggle (see `allowFullScreen`'s own doc comment above) —
     // self-contained, not controlled from outside. Deliberately NOT reset
