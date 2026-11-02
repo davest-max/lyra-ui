@@ -97,9 +97,16 @@ export interface InteriorPanelProps extends React.HTMLAttributes<HTMLDivElement>
    * explicit request) — unless `storageKey` is set and a previously
    * drag-resized width was found under that key, in which case that
    * remembered width is used instead. Passing this prop explicitly always
-   * wins over both.
+   * wins over both. A later change to it moves the panel to the new width (the width is the caller's, e.g. a panel
+   * that fills a column the agent resizes); pair it with `instantWidthChange` while that width is being dragged.
    */
   width?: number;
+  /**
+   * Suppress the width transition for this render, as `SidePanel`'s prop of the same name: the width jumps to its new
+   * value instead of sliding. For a width the caller changes on every pointer move (a drag it didn't start itself).
+   * Default `false`: the normal 250ms slide.
+   */
+  instantWidthChange?: boolean;
   /**
    * Cookie key to remember this panel's drag-resized width under, across
    * opens/closes and even full remounts (e.g. navigating away from the page
@@ -341,6 +348,7 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
       onResizeStateChange,
       onWidthChange,
       width,
+      instantWidthChange = false,
       storageKey,
       headerTitle,
       headerClassName,
@@ -385,11 +393,13 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
     // via `useState(() => ...)` rather than on every render, since this
     // only matters for the very first render's initial width; after that,
     // drag state (`usePanelDragResize`'s own `dragWidth`) takes over.
-    const [initialWidth] = useState(() => {
+    const [firstWidth] = useState(() => {
       if (width !== undefined) return width;
       const stored = storageKey ? readNumberCookie(storageKey) : null;
       return stored ?? minWidth;
     });
+    // An explicit `width` stays live: the drag hook resets its own drag state when this changes (use-panel-drag-resize).
+    const initialWidth = width ?? firstWidth;
 
     // Full-screen state lives up here (not next to the toggle further down) so
     // the drag callback below can flip it for `autoFullScreen`.
@@ -521,7 +531,7 @@ const InteriorPanel = React.forwardRef<HTMLDivElement, InteriorPanelProps>(
     useEffect(() => {
       prevIsFullScreenRef.current = isFullScreen;
     });
-    const widthTransition = isResizing || fullScreenJustToggled
+    const widthTransition = isResizing || fullScreenJustToggled || instantWidthChange
       ? "none"
       : "width 250ms cubic-bezier(0.4, 0, 0.2, 1)";
 
