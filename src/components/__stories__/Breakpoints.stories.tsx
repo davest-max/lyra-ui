@@ -61,7 +61,7 @@ function ResizeBox({
    ════════════════════════════════════════════════════ */
 
 const REGISTRY = [
-  { family: "Container Grid", wrap: ".lyra-container-grid-wrap", query: ".lyra-container-grid", thresholds: "991px, 768px", usedBy: "AgentDashboard, DashboardQueue" },
+  { family: "Container Grid", wrap: ".lyra-container-grid-wrap", query: ".lyra-container-grid", thresholds: "991px, 768px (LYRA_CONTAINER_GRID_STACK_MAX_WIDTH)", usedBy: "AgentDashboard, DashboardQueue" },
   { family: "Form Grid", wrap: ".lyra-form-grid-wrap", query: ".lyra-form-grid", thresholds: "768px, 480px", usedBy: "FormTemplate" },
   { family: "Card Split", wrap: ".lyra-card-split-wrap", query: ".lyra-card-split", thresholds: "480px", usedBy: "DashboardCard children composition; agent-next-gen-v1's Customer Information Overview tab (fields list + Latest Interaction, via -even)" },
   { family: "Metric Row", wrap: ".lyra-metric-row-wrap", query: ".lyra-metric-row", thresholds: "768px, 550px, 360px", usedBy: "DashboardCard's metrics mode" },

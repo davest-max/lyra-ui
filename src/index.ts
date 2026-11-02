@@ -399,7 +399,7 @@ export type { PhoneValue, PhoneCountry } from "./components/phone-input";
 
 /* ── Utilities ── */
 export { cn } from "./lib/utils";
-export { LYRA_CARD_MAX_WIDTH, LEFT_NAV_EXPANDED_WIDTH, LEFT_NAV_RAIL_WIDTH } from "./lib/size-tokens";
+export { LYRA_CARD_MAX_WIDTH, LYRA_CONTAINER_GRID_STACK_MAX_WIDTH, LEFT_NAV_EXPANDED_WIDTH, LEFT_NAV_RAIL_WIDTH } from "./lib/size-tokens";
 export { AICard } from "./components/ai-card";
 export type { AICardProps, AICardColor } from "./components/ai-card";
 

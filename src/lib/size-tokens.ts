@@ -6,6 +6,10 @@
 /** The max card width, px. Mirrors `--lyra-size-card-max-width`. */
 export const LYRA_CARD_MAX_WIDTH = 350;
 
+/** The container width, px, at and below which `.lyra-container-grid` stacks its cards in one column (its
+ *  `@container (max-width: 768px)` stage). Mirrors that query in src/styles/lyra-tokens.css; change both together. */
+export const LYRA_CONTAINER_GRID_STACK_MAX_WIDTH = 768;
+
 /** LeftNav's expanded width, px. Mirrors `--lyra-size-left-nav-width`. */
 export const LEFT_NAV_EXPANDED_WIDTH = 256;
 
