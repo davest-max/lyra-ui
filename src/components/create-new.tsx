@@ -527,6 +527,10 @@ export interface CreateNewOutboundConfig {
   dialpadRequest?: {
     phoneNumber: string;
     anchorEl?: HTMLElement | null;
+    /** Which side of `anchorEl` the popover opens on and how it aligns there (default: below it, start-aligned —
+     *  the Redial button's own placement). E.g. `{ side: "top", align: "end" }` for an anchor at the foot of a card,
+     *  so the popover opens above it. Only meaningful with `anchorEl`. */
+    placement?: { side?: "top" | "bottom"; align?: "start" | "center" | "end" };
     customerName?: string;
     phoneOptions?: { value: string; label: string }[];
   } | null;
@@ -1962,6 +1966,8 @@ const CreateNew = React.forwardRef<HTMLButtonElement, CreateNewProps>(
     // in the same close-reset effect that already clears every other
     // transient popover-session flag.
     const [dialpadRequestActive, setDialpadRequestActive] = useState(false);
+    // `dialpadRequest.placement`: reset with the rest of the request's state when the popover closes.
+    const [dialpadPlacement, setDialpadPlacement] = useState<{ side?: "top" | "bottom"; align?: "start" | "center" | "end" } | null>(null);
     // `dialpadRequest.customerName`/`.phoneOptions` (see that field's own
     // doc comment) — `null`/`null` for a raw/unknown redialed number, which
     // keeps the dialpad screen's original free-text-field/generic-title
@@ -2035,6 +2041,7 @@ const CreateNew = React.forwardRef<HTMLButtonElement, CreateNewProps>(
           // anchored on the trigger itself, never still showing (or
           // anchored to) whatever the last redial left behind.
           virtualAnchorRef.current = null;
+          setDialpadPlacement(null);
           setDialpadRequestActive(false);
           setDialpadCustomerName(null);
           setDialpadPhoneOptions(null);
@@ -2437,6 +2444,7 @@ const CreateNew = React.forwardRef<HTMLButtonElement, CreateNewProps>(
         // formatting mismatch), which would otherwise silently default
         // this "Select Phone" field to a value with no matching option.
         virtualAnchorRef.current = req.anchorEl ?? null;
+        setDialpadPlacement(req.placement ?? null);
         setDialpadRequestActive(true);
         setDialpadCustomerName(req.customerName ?? null);
         setDialpadPhoneOptions(req.phoneOptions ?? null);
@@ -2903,8 +2911,8 @@ const CreateNew = React.forwardRef<HTMLButtonElement, CreateNewProps>(
       <Popover
         open={open}
         onOpenChange={setOpen}
-        placement="bottom"
-        align="start"
+        placement={dialpadPlacement?.side ?? "bottom"}
+        align={dialpadPlacement?.align ?? "start"}
         sideOffset={6}
         showArrow={false}
         // Repositions onto `dialpadRequest.anchorEl` (e.g. the Redial

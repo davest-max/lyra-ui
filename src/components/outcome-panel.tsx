@@ -101,8 +101,10 @@ export interface ChannelOutcomeConfig {
    *  popover itself was opened from, the same way Contact History's own
    *  Redial button anchors its popover on itself — this Outcome popover's
    *  OWN footer button isn't a safe anchor on its own, since it unmounts
-   *  the instant this popover closes. */
-  onSaveAndRedial?: (anchorEl: HTMLElement | null) => void;
+   *  the instant this popover closes. The second argument is that Save &amp; Redial button itself, for a footer that
+   *  stays mounted (the inline wrap-up card, which has no popover to close), so the consumer can anchor on the button
+   *  that was clicked. */
+  onSaveAndRedial?: (anchorEl: HTMLElement | null, button: HTMLElement) => void;
   /** Whether the `callEnded` footer shows "Save & Redial" (default: true).
    *  False leaves only "Save & Dismiss", e.g. for a channel that can't be
    *  redialed. */
@@ -210,7 +212,7 @@ export function buildOutcomePopoverSlots(
               <Button
                 variant="outline"
                 size="md"
-                onClick={() => outcome.onSaveAndRedial?.(triggerRef?.current ?? null)}
+                onClick={(e) => outcome.onSaveAndRedial?.(triggerRef?.current ?? null, e.currentTarget)}
                 disabled={!outcome.dispositionCode}
               >
                 Save &amp; Redial
