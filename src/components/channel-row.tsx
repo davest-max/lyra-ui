@@ -12,6 +12,7 @@ import {
   PhoneIncoming,
   PhoneOutgoing,
   CircleCheck,
+  CircleCheckBig,
   Send,
   FileDown,
   Languages,
@@ -34,7 +35,6 @@ import { Tooltip } from "./tooltip";
 import { Button } from "./button";
 import { Popover } from "./popover";
 import { Label } from "./label";
-import { SuccessIconSolid } from "./icons/success-icon-solid";
 import { formatPhoneForDisplay } from "./phone-input";
 // The Outcome popover's config type + the two shared builders that
 // both ChannelRow (below) and ChannelTab (further down) call to render
@@ -924,23 +924,15 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
                       className="shrink-0 text-lyra-fg-secondary"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {/* Per explicit request ("make the outcome check button
-                          a solid blue circle"): swaps the outline `CircleCheck`
-                          lucide icon for this file's own `SuccessIconSolid` (a
-                          filled circle + white checkmark, recolorable via
-                          `text-*` since its circle is `fill="currentColor"`) —
-                          the same solid-icon convention `WarningIconSolid`
-                          above already uses. Kept the existing
-                          `text-lyra-status-info-strong` blue tint rather than
-                          the icon's "success" green default, matching the blue
-                          this Outcome icon has always used. The kebab-menu
-                          "Outcome" entries (`buildStandardKebabMenuOptions`/
-                          `buildVoiceKebabMenuOptions` above) keep the plain
-                          outline `CircleCheck` — they sit in a list alongside
-                          other plain outline icons (Send/FileDown/Languages/
-                          PlayCircle), where a solid badge would look
-                          inconsistent with its neighbors. */}
-                      <SuccessIconSolid className="h-4 w-4 text-lyra-status-info-strong" />
+                      {/* Outcome uses the outlined `CircleCheckBig` at a heavier
+                          stroke, in the lyra info-strong blue. The outline keeps
+                          it visibly distinct from the filled green availability
+                          check (shape, not just colour), and the heavier stroke
+                          matches what agents already know from the legacy app.
+                          Heavier than the §5 default of 1.4, per explicit
+                          request. The kebab-menu "Outcome" entries keep the
+                          plain `CircleCheck` in their list. */}
+                      <CircleCheckBig className="h-4 w-4 text-lyra-status-info-strong" strokeWidth={2.5} />
                     </Button>
                   </Popover>
                 </span>
@@ -953,7 +945,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
                 disabled={controlsDisabled}
                 className="shrink-0 text-lyra-fg-secondary"
               >
-                <SuccessIconSolid className="h-4 w-4 text-lyra-status-info-strong" />
+                <CircleCheckBig className="h-4 w-4 text-lyra-status-info-strong" strokeWidth={2.5} />
               </Button>
             )}
             {onEndCall && (

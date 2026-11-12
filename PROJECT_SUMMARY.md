@@ -907,6 +907,11 @@ Additive, every existing caller unaffected. Rule they serve (agent-next-gen-demo
 - `create-new.tsx`: `CreateNewOutboundContact.openAddressReason` (opt-in). Set, the addresses in `openChannelAddresses` stay in "Select Phone"/"Select Email Address"/"Select WhatsApp Handle", disabled with it, instead of being dropped (`resolveOutboundDetailField`); the default is the first one not open (`""` when all are). `isChannelBlockedForContact` blocks a channel when every option is disabled (was: when the list was empty), so "Select Channel" still disables a channel open on every address. Unset, open addresses are dropped as before. Applies to `CreateNew`'s detail screen and `AddChannelButton` alike.
 Stories: Select/Variants "Disabled with Reason"; CreateNew "Open address listed with a reason".
 
+### ChannelRow Outcome icon: outline `CircleCheckBig`, heavier stroke, info-strong blue (2026-11-12)
+- The Outcome button (both the popover trigger and the inert fallback) now renders `CircleCheckBig` at `strokeWidth={2.5}` in `text-lyra-status-info-strong`, instead of the filled `SuccessIconSolid`. The outline keeps it distinct from the filled green availability check (shape, not just colour), and the heavier stroke matches what legacy agents already know.
+- The `strokeWidth` is above the §5 default of 1.4 on purpose, per an explicit request. The kebab-menu "Outcome" entries keep the plain `CircleCheck`. The `text-lyra-status-info-strong` class is kept so consumers that target this icon by colour still match.
+- `SuccessIconSolid` is no longer imported in `channel-row.tsx` (the file itself is untouched).
+
 ## Stories
 
 ### Storybook canvas follows the theme toggle (2026-10-30)
